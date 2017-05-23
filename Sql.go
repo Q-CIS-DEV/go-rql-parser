@@ -93,8 +93,8 @@ func (st *SqlTranslator) Sort() (sql string) {
 		sql = " ORDER BY "
 		sep := ""
 		for _, sort := range sorts {
-			sql = sql + sep + sort.by
-			if sort.desc {
+			sql = sql + sep + sort.By
+			if sort.Desc {
 				sql = sql + " DESC"
 			}
 			sep = ", "
