@@ -24,8 +24,8 @@ type RqlNode struct {
 }
 
 type Sort struct {
-	by   string
-	desc bool
+	By   string
+	Desc bool
 }
 
 type RqlRootNode struct {
@@ -84,7 +84,7 @@ func parseSort(n *RqlNode, root *RqlRootNode) (isSortOp bool) {
 				desc = true
 				property = property[1:]
 			}
-			root.sorts = append(root.sorts, Sort{by: property, desc: desc})
+			root.sorts = append(root.sorts, Sort{By: property, Desc: desc})
 		}
 
 		isSortOp = true
