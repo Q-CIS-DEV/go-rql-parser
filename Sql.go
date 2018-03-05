@@ -21,42 +21,6 @@ func (st *SqlTranslator) DeleteOpFunc(op string) {
 	delete(st.sqlOpsDic, strings.ToUpper(op))
 }
 
-// func (st *SqlTranslator) GetSimpleTranslatorFunc(op string, betweenParenthesis bool, quoteStr bool) TranslatorOpFunc {
-// 	return TranslatorOpFunc(func(n *RqlNode) (s string, err error) {
-// 		sep := ""
-// 		quote := ""
-
-// 		for _, a := range n.Args {
-// 			s = s + sep
-// 			switch a.(type) {
-// 			case string:
-// 				v := a.(string)
-// 				if _, err := strconv.Atoi(v); err != nil {
-// 					v = quote + v + quote
-// 				}
-// 				s = s + v
-// 			case *RqlNode:
-// 				var _s string
-// 				_s, err = st.where(a.(*RqlNode))
-// 				if err != nil {
-// 					return "", err
-// 				}
-// 				s = s + _s
-// 			}
-
-// 			sep = " " + op + " "
-// 			if quoteStr {
-// 				quote = "'"
-// 			}
-// 		}
-
-// 		if betweenParenthesis {
-// 			s = "(" + s + ")"
-// 		}
-// 		return
-// 	})
-// }
-
 func (st *SqlTranslator) Where() (string, error) {
 	return st.where(st.rootNode.Node)
 }

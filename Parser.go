@@ -13,7 +13,7 @@ type TokenBloc []TokenString
 
 func (tb TokenBloc) String() (s string) {
 	for _, t := range tb {
-		s = s + fmt.Sprintf("'%s' ", t.s)
+		s = s + fmt.Sprintf("'%s' ", t.string)
 	}
 	return
 }
@@ -151,9 +151,9 @@ func NewParser() *Parser {
 	return &Parser{s: NewScanner()}
 }
 
-func (p *Parser) Parse(r io.Reader) (root *RqlRootNode, err error) {
+func (parser *Parser) Parse(r io.Reader) (root *RqlRootNode, err error) {
 	var tokenStrings []TokenString
-	if tokenStrings, err = p.s.Scan(r); err != nil {
+	if tokenStrings, err = parser.s.Scan(r); err != nil {
 		return nil, err
 	}
 
@@ -179,32 +179,31 @@ func getTokenOp(t Token) string {
 	return ""
 }
 
-func parse(ts []TokenString) (node *RqlNode, err error) {
+func parse(tokenStrings []TokenString) (node *RqlNode, err error) {
 	var childNode *RqlNode
 
-	childTs := [][]TokenString{}
 	node = &RqlNode{}
 
-	if len(ts) == 0 {
+	if len(tokenStrings) == 0 {
 		return nil, nil
 	}
-
-	if isParenthesisBloc(ts) && findClosingIndex(ts[1:]) == len(ts)-2 {
-		ts = ts[1 : len(ts)-1]
-	}
-	// __printTB("\nParsing : ", ts)
-
-	node.Op, childTs = splitByBasisOp(ts)
-
-	if node.Op == "" || len(childTs) == 1 {
-		return getBlocNode(ts)
+	//remove surrounding parenthesises
+	if isParenthesisBloc(tokenStrings) && findClosingIndex(tokenStrings[1:]) == len(tokenStrings)-2 {
+		tokenStrings = tokenStrings[1: len(tokenStrings)-1]
 	}
 
-	for _, c := range childTs {
-		childNode, err = parse(c)
+	var childTokens [][]TokenString
+	node.Op, childTokens = splitByBasisOp(tokenStrings)
+
+	if node.Op == "" || len(childTokens) == 1 {
+		return getBlocNode(tokenStrings)
+	}
+
+	for _, childToken := range childTokens {
+		childNode, err = parse(childToken)
 		if err != nil {
 			if err == IsValueError {
-				node.Args = append(node.Args, c[0].s)
+				node.Args = append(node.Args, childToken[0].string)
 			} else {
 				return nil, err
 			}
@@ -213,7 +212,7 @@ func parse(ts []TokenString) (node *RqlNode, err error) {
 		}
 	}
 
-	return
+	return node, nil
 }
 
 func isTokenInSlice(tokens []Token, tok Token) bool {
@@ -238,14 +237,14 @@ func splitByBasisOp(tb []TokenString) (op string, tbs [][]TokenString) {
 	for _, bt := range basisTokenGroups {
 		btExtended := append(bt, ILLEGAL)
 		for i, ts := range tb {
-			if ts.t == OPENING_PARENTHESIS {
+			if ts.token == OPENING_PARENTHESIS {
 				prof++
-			} else if ts.t == CLOSING_PARENTHESIS {
+			} else if ts.token == CLOSING_PARENTHESIS {
 				prof--
 			} else if prof == 0 {
-				if isTokenInSlice(bt, ts.t) && isTokenInSlice(btExtended, matchingToken) {
+				if isTokenInSlice(bt, ts.token) && isTokenInSlice(btExtended, matchingToken) {
 					tbs = append(tbs, tb[lastIndex:i])
-					matchingToken = ts.t
+					matchingToken = ts.token
 					lastIndex = i + 1
 				}
 			}
@@ -262,69 +261,69 @@ func splitByBasisOp(tb []TokenString) (op string, tbs [][]TokenString) {
 	return
 }
 
-func getBlocNode(tb []TokenString) (*RqlNode, error) {
-	n := &RqlNode{}
+func getBlocNode(tokenStrings []TokenString) (*RqlNode, error) {
+	rqlNode := &RqlNode{}
 
-	if isValue(tb) {
+	if isValue(tokenStrings) {
 		return nil, IsValueError
-	} else if isFuncStyleBloc(tb) {
+	} else if isFuncStyleBloc(tokenStrings) {
 		var err error
 
-		n.Op = tb[0].s
-		n.Args, err = parseFuncArgs(tb[2 : findClosingIndex(tb[2:])+2])
+		rqlNode.Op = tokenStrings[0].string
+		rqlNode.Args, err = parseFuncArgs(tokenStrings[2: findClosingIndex(tokenStrings[2:])+2])
 		if err != nil {
 			return nil, err
 		}
-	} else if isSimpleEqualBloc(tb) {
-		n.Op = "eq"
-		n.Args = []interface{}{tb[0].s, tb[2].s}
+	} else if isSimpleEqualBloc(tokenStrings) {
+		rqlNode.Op = "eq"
+		rqlNode.Args = []interface{}{tokenStrings[0].string, tokenStrings[2].string}
 
-	} else if isDoubleEqualBloc(tb) {
+	} else if isDoubleEqualBloc(tokenStrings) {
 
-		n.Op = tb[2].s
-		n.Args = []interface{}{tb[0].s}
-		if len(tb) == 5 {
-			n.Args = append(n.Args, tb[4].s)
-		} else if isParenthesisBloc(tb[4:]) && findClosingIndex(tb[5:]) == len(tb)-6 {
-			args, err := parseFuncArgs(tb[5 : len(tb)-1])
+		rqlNode.Op = tokenStrings[2].string
+		rqlNode.Args = []interface{}{tokenStrings[0].string}
+		if len(tokenStrings) == 5 {
+			rqlNode.Args = append(rqlNode.Args, tokenStrings[4].string)
+		} else if isParenthesisBloc(tokenStrings[4:]) && findClosingIndex(tokenStrings[5:]) == len(tokenStrings)-6 {
+			args, err := parseFuncArgs(tokenStrings[5: len(tokenStrings)-1])
 			if err != nil {
 				return nil, err
 			}
-			n.Args = append(n.Args, args...)
+			rqlNode.Args = append(rqlNode.Args, args...)
 		} else {
-			return nil, fmt.Errorf("Unrecognized DoubleEqual bloc : " + TokenBloc(tb).String())
+			return nil, fmt.Errorf("Unrecognized DoubleEqual bloc : " + TokenBloc(tokenStrings).String())
 		}
 
 	} else {
-		return nil, fmt.Errorf("Unrecognized bloc : " + TokenBloc(tb).String())
+		return nil, fmt.Errorf("Unrecognized bloc : " + TokenBloc(tokenStrings).String())
 	}
 
-	return n, nil
+	return rqlNode, nil
 }
 
 func isValue(tb []TokenString) bool {
-	return len(tb) == 1 && tb[0].t == IDENT
+	return len(tb) == 1 && tb[0].token == IDENT
 }
 
 func isParenthesisBloc(tb []TokenString) bool {
-	return tb[0].t == OPENING_PARENTHESIS
+	return tb[0].token == OPENING_PARENTHESIS
 }
 
 func isFuncStyleBloc(tb []TokenString) bool {
-	return (tb[0].t == IDENT) && (tb[1].t == OPENING_PARENTHESIS)
+	return (tb[0].token == IDENT) && (tb[1].token == OPENING_PARENTHESIS)
 }
 
 func isSimpleEqualBloc(tb []TokenString) bool {
-	isSimple := (tb[0].t == IDENT && tb[1].t == EQUAL_SIGN)
+	isSimple := (tb[0].token == IDENT && tb[1].token == EQUAL_SIGN)
 	if len(tb) > 3 {
-		isSimple = isSimple && tb[3].t != EQUAL_SIGN
+		isSimple = isSimple && tb[3].token != EQUAL_SIGN
 	}
 
 	return isSimple
 }
 
 func isDoubleEqualBloc(tb []TokenString) bool {
-	return tb[0].t == IDENT && tb[1].t == EQUAL_SIGN && tb[2].t == IDENT && tb[3].t == EQUAL_SIGN
+	return tb[0].token == IDENT && tb[1].token == EQUAL_SIGN && tb[2].token == IDENT && tb[3].token == EQUAL_SIGN
 }
 
 func parseFuncArgs(tb []TokenString) (args []interface{}, err error) {
@@ -343,16 +342,16 @@ func parseFuncArgs(tb []TokenString) (args []interface{}, err error) {
 		argTokens = append(argTokens, tb[lastIndex:])
 	}
 
-	for _, ts := range argTokens {
-		n, err := parse(ts)
+	for _, tokenStrings := range argTokens {
+		rqlNode, err := parse(tokenStrings)
 		if err != nil {
 			if err == IsValueError {
-				args = append(args, ts[0].s)
+				args = append(args, tokenStrings[0].string)
 			} else {
 				return args, err
 			}
 		} else {
-			args = append(args, n)
+			args = append(args, rqlNode)
 		}
 	}
 
@@ -367,14 +366,14 @@ func findClosingIndex(tb []TokenString) int {
 func findTokenIndex(tb []TokenString, token Token) int {
 	prof := 0
 	for i, ts := range tb {
-		if ts.t == OPENING_PARENTHESIS {
+		if ts.token == OPENING_PARENTHESIS {
 			prof++
-		} else if ts.t == CLOSING_PARENTHESIS {
+		} else if ts.token == CLOSING_PARENTHESIS {
 			if prof == 0 && token == CLOSING_PARENTHESIS {
 				return i
 			}
 			prof--
-		} else if token == ts.t && prof == 0 {
+		} else if token == ts.token && prof == 0 {
 			return i
 		}
 	}
@@ -384,14 +383,14 @@ func findTokenIndex(tb []TokenString, token Token) int {
 func findAllTokenIndexes(tb []TokenString, token Token) (indexes []int) {
 	prof := 0
 	for i, ts := range tb {
-		if ts.t == OPENING_PARENTHESIS {
+		if ts.token == OPENING_PARENTHESIS {
 			prof++
-		} else if ts.t == CLOSING_PARENTHESIS {
+		} else if ts.token == CLOSING_PARENTHESIS {
 			if prof == 0 && token == CLOSING_PARENTHESIS {
 				indexes = append(indexes, i)
 			}
 			prof--
-		} else if token == ts.t && prof == 0 {
+		} else if token == ts.token && prof == 0 {
 			indexes = append(indexes, i)
 		}
 	}

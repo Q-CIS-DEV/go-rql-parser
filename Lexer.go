@@ -45,14 +45,14 @@ var (
 )
 
 type TokenString struct {
-	t Token
-	s string
+	token  Token
+	string string
 }
 
 type Token int
 
 func NewTokenString(t Token, s string) TokenString {
-	return TokenString{t: t, s: s}
+	return TokenString{token: t, string: s}
 }
 
 type Scanner struct {
