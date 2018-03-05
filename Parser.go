@@ -60,15 +60,14 @@ func parseLimit(n *RqlNode, root *RqlRootNode) (isLimitOp bool) {
 		return false
 	}
 	if strings.ToUpper(n.Op) == "LIMIT" {
-		root.limit = n.Args[0].(string)
+		root.offset = n.Args[0].(string)
 		if len(n.Args) > 1 {
-			root.offset = n.Args[1].(string)
+			root.limit = n.Args[1].(string)
 		}
 		isLimitOp = true
 	}
 	return
 }
-
 func parseSort(n *RqlNode, root *RqlRootNode) (isSortOp bool) {
 	if n == nil {
 		return false
