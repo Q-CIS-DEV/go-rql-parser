@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/url"
 )
 
 const (
@@ -52,7 +53,8 @@ type TokenString struct {
 type Token int
 
 func NewTokenString(t Token, s string) TokenString {
-	return TokenString{token: t, string: s}
+	unescapedString, _ := url.QueryUnescape(s)
+	return TokenString{token: t, string: unescapedString}
 }
 
 type Scanner struct {
