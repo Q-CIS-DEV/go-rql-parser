@@ -1,4 +1,4 @@
-package GoRqlParser__test
+package rqlParser_test
 
 import (
 	. "github.com/onsi/ginkgo"
