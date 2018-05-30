@@ -264,7 +264,9 @@ func getBlocNode(tokenStrings []TokenString) (*RqlNode, error) {
 	rqlNode := &RqlNode{}
 
 	if isValue(tokenStrings) {
-		return nil, IsValueError
+		rqlNode.Args = []interface{}{tokenStrings[0].string}
+		rqlNode.Op = "single-value"
+		return rqlNode, IsValueError
 	} else if isFuncStyleBloc(tokenStrings) {
 		var err error
 
@@ -326,26 +328,28 @@ func isDoubleEqualBloc(tb []TokenString) bool {
 }
 
 func parseFuncArgs(tb []TokenString) (args []interface{}, err error) {
-	var argTokens [][]TokenString
+	var tokenGroups [][]TokenString
 
 	indexes := findAllTokenIndexes(tb, COMMA)
 
+	//split tokens by groups
 	if len(indexes) == 0 {
-		argTokens = append(argTokens, tb)
+		tokenGroups = append(tokenGroups, tb)
 	} else {
 		lastIndex := 0
 		for _, i := range indexes {
-			argTokens = append(argTokens, tb[lastIndex:i])
+			tokenGroups = append(tokenGroups, tb[lastIndex:i])
 			lastIndex = i + 1
 		}
-		argTokens = append(argTokens, tb[lastIndex:])
+		tokenGroups = append(tokenGroups, tb[lastIndex:])
 	}
 
-	for _, tokenStrings := range argTokens {
-		rqlNode, err := parse(tokenStrings)
+	for _, tokenGroup := range tokenGroups {
+		rqlNode, err := parse(tokenGroup)
 		if err != nil {
 			if err == IsValueError {
-				args = append(args, tokenStrings[0].string)
+				//use clean value
+				args = append(args, rqlNode.Args[0])
 			} else {
 				return args, err
 			}
