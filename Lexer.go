@@ -14,20 +14,20 @@ const (
 	EOF
 
 	// Literals
-	IDENT // fields, function names
+	IDENT  // fields, function names
 
 	// Reserved characters
-	SPACE               //
-	AMPERSAND           // &
-	OPENING_PARENTHESIS // (
-	CLOSING_PARENTHESIS // )
-	COMMA               // ,
-	EQUAL_SIGN          // =
-	SLASH               // /
-	SEMI_COLON          // ;
-	QUESTION_MARK       // ?
-	AT_SYMBOL           // @
-	PIPE                // |
+	SPACE                //
+	AMPERSAND            // &
+	OPENING_PARENTHESIS  // (
+	CLOSING_PARENTHESIS  // )
+	COMMA                // ,
+	EQUAL_SIGN           // =
+	SLASH                // /
+	SEMI_COLON           // ;
+	QUESTION_MARK        // ?
+	AT_SYMBOL            // @
+	PIPE                 // |
 
 	// Keywords
 	AND
@@ -53,7 +53,12 @@ type TokenString struct {
 type Token int
 
 func NewTokenString(t Token, s string) TokenString {
-	unescapedString, _ := url.QueryUnescape(s)
+	var unescapedString string
+	if len(s) > 0 && string(s[0]) != "+" {
+		unescapedString, _ = url.QueryUnescape(s)
+	} else {
+		unescapedString = s
+	}
 	return TokenString{token: t, string: unescapedString}
 }
 
