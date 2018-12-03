@@ -263,7 +263,11 @@ func splitByBasisOp(tb []TokenString) (op string, tbs [][]TokenString) {
 func getBlocNode(tokenStrings []TokenString) (*RqlNode, error) {
 	rqlNode := &RqlNode{}
 
-	if isValue(tokenStrings) {
+	if len(tokenStrings) == 0 {
+		rqlNode.Args = []interface{}{}
+		rqlNode.Op = "single-value"
+		return rqlNode, IsValueError
+	} else if isValue(tokenStrings) {
 		rqlNode.Args = []interface{}{tokenStrings[0].string}
 		rqlNode.Op = "single-value"
 		return rqlNode, IsValueError
@@ -303,7 +307,7 @@ func getBlocNode(tokenStrings []TokenString) (*RqlNode, error) {
 }
 
 func isValue(tb []TokenString) bool {
-	return len(tb) == 1 && tb[0].token == IDENT
+	return len(tb) == 0 || len(tb) == 1 && tb[0].token == IDENT
 }
 
 func isParenthesisBloc(tb []TokenString) bool {
@@ -349,7 +353,9 @@ func parseFuncArgs(tb []TokenString) (args []interface{}, err error) {
 		if err != nil {
 			if err == IsValueError {
 				//use clean value
-				args = append(args, rqlNode.Args[0])
+				if len(rqlNode.Args) > 0 {
+					args = append(args, rqlNode.Args[0])
+				}
 			} else {
 				return args, err
 			}
