@@ -2,7 +2,7 @@ package rqlParser
 
 import (
 	"fmt"
-	"io"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -150,9 +150,12 @@ func NewParser() *Parser {
 	return &Parser{s: NewScanner()}
 }
 
-func (parser *Parser) Parse(r io.Reader) (root *RqlRootNode, err error) {
+func (parser *Parser) Parse(rql string) (root *RqlRootNode, err error) {
 	var tokenStrings []TokenString
-	if tokenStrings, err = parser.s.Scan(r); err != nil {
+
+	rql, _ = url.QueryUnescape(rql)
+
+	if tokenStrings, err = parser.s.Scan(strings.NewReader(rql)); err != nil {
 		return nil, err
 	}
 
