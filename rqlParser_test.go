@@ -1,9 +1,9 @@
 package rqlParser_test
 
 import (
+	rqlParser "github.com/Q-CIS-DEV/go-rql-parser"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	rqlParser "go-rql-parser"
 
 	"fmt"
 	"net/url"
