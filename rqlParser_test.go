@@ -57,7 +57,7 @@ var _ = Describe("GoRqlParser", func() {
 		})
 
 		Describe("Sort expression encoded", func() {
-			filter := url.QueryEscape("sort(date)")
+			filter := url.QueryEscape("sort(+date)")
 			parser := rqlParser.NewParser()
 			rqlNode, err := parser.Parse(filter)
 

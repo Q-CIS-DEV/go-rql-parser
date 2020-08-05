@@ -123,6 +123,8 @@ func (s *Scanner) scanReservedRune() (tok Token, lit string) {
 	for _, rr := range ReservedRunes {
 		if string(rr) == lit {
 			switch rr {
+			case ' ':
+				return SPACE, lit
 			case '&':
 				return AMPERSAND, lit
 			case '(':
