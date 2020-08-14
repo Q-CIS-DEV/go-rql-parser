@@ -40,7 +40,7 @@ const (
 )
 
 var (
-	ReservedRunes []rune = []rune{' ', '&', '(', ')', ',', '=', '/', ';', '?', '@', '|'}
+	ReservedRunes []rune = []rune{'&', '(', ')', ',', '=', '/', ';', '?', '@', '|'}
 	eof                  = rune(0)
 )
 
@@ -87,16 +87,12 @@ func (s *Scanner) ScanToken() (tok Token, lit string) {
 	if isReservedRune(ch) {
 		s.unread()
 		return s.scanReservedRune()
-	} else if isIdent(ch) {
+	} else if ch == eof {
+		return EOF, ""
+	} else {
 		s.unread()
 		return s.scanIdent()
 	}
-
-	if ch == eof {
-		return EOF, ""
-	}
-
-	return ILLEGAL, string(ch)
 }
 
 func (s *Scanner) read() rune {
@@ -123,8 +119,6 @@ func (s *Scanner) scanReservedRune() (tok Token, lit string) {
 	for _, rr := range ReservedRunes {
 		if string(rr) == lit {
 			switch rr {
-			case ' ':
-				return SPACE, lit
 			case '&':
 				return AMPERSAND, lit
 			case '(':
@@ -179,7 +173,7 @@ func isLetter(ch rune) bool {
 }
 
 // isDigit returns true if the rune is a digit.
-func isDigit(ch rune) bool { return (ch >= '0' && ch <= '9') }
+func isDigit(ch rune) bool { return ch >= '0' && ch <= '9' }
 
 func (s *Scanner) scanIdent() (tok Token, lit string) {
 	// Create a buffer and read the current character into it.
@@ -191,7 +185,7 @@ func (s *Scanner) scanIdent() (tok Token, lit string) {
 	for {
 		if ch := s.read(); ch == eof {
 			break
-		} else if !isIdent(ch) {
+		} else if isReservedRune(ch) || ch == eof {
 			s.unread()
 			break
 		} else {

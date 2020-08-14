@@ -21,6 +21,15 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(testString))
 	})
 
+	It("Must parse utf8", func() {
+		testString := "Русский текст"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s*)", testString))
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", testString)))
+	})
+
 	It("Can parse plain expressiond", func() {
 		dateString := "2018-05-29T15:29:58.627755Z"
 		parser := rqlParser.NewParser()
