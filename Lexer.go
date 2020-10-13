@@ -158,6 +158,10 @@ func isReservedRune(ch rune) bool {
 	return false
 }
 
+func isEscapeRune(ch rune) bool {
+	return ch == '\\'
+}
+
 func isIdent(ch rune) bool {
 	return isLetter(ch) || isDigit(ch) || isSpecialChar(ch)
 }
@@ -180,12 +184,22 @@ func (s *Scanner) scanIdent() (tok Token, lit string) {
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
 
+	runeEscaped := false
+
 	// Read every subsequent ident character into the buffer.
 	// Non-ident characters and EOF will cause the loop to exit.
 	for {
 		if ch := s.read(); ch == eof {
 			break
-		} else if isReservedRune(ch) || ch == eof {
+			
+		} else if isEscapeRune(ch) {
+			runeEscaped = true
+			
+		} else if isReservedRune(ch) && runeEscaped {
+			buf.WriteRune(ch)
+			runeEscaped = false
+			
+		} else if isReservedRune(ch) && !runeEscaped {
 			s.unread()
 			break
 		} else {
