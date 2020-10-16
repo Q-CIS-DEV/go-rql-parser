@@ -76,4 +76,14 @@ var _ = Describe("GoRqlParser", func() {
 			Expect(res.Desc).To(BeFalse())
 		})
 	})
+	It("Can parse special symbols", func() {
+		sheldingString := "H\\&M\\,\\(\\)"
+		valueStirng := "H&M,()"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s*)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
+	})
 })
