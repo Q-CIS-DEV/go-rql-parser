@@ -77,8 +77,8 @@ var _ = Describe("GoRqlParser", func() {
 		})
 	})
 	It("Can parse special symbols", func() {
-		sheldingString := "H\\&M\\,\\(\\)"
-		valueStirng := "H&M,()"
+		sheldingString := "H\\&M\\,\\(\\)\\\\ \\a"
+		valueStirng := "H&M,()\\ а"
 		parser := rqlParser.NewParser()
 		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s*)", sheldingString))
 
