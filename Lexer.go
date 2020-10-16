@@ -27,6 +27,7 @@ const (
 	QUESTION_MARK        // ?
 	AT_SYMBOL            // @
 	PIPE                 // |
+	BACKSLASH            // \
 
 	// Keywords
 	AND
@@ -40,7 +41,7 @@ const (
 )
 
 var (
-	ReservedRunes []rune = []rune{'&', '(', ')', ',', '=', '/', ';', '?', '@', '|'}
+	ReservedRunes []rune = []rune{'&', '(', ')', ',', '=', '/', ';', '?', '@', '|', '\\'}
 	eof                  = rune(0)
 )
 
@@ -139,6 +140,8 @@ func (s *Scanner) scanReservedRune() (tok Token, lit string) {
 				return AT_SYMBOL, lit
 			case '|':
 				return PIPE, lit
+			case '\\':
+				return BACKSLASH, lit
 			case eof:
 				return EOF, lit
 			default:
@@ -192,7 +195,7 @@ func (s *Scanner) scanIdent() (tok Token, lit string) {
 		if ch := s.read(); ch == eof {
 			break
 			
-		} else if isEscapeRune(ch) {
+		} else if isEscapeRune(ch) && !runeEscaped {
 			runeEscaped = true
 			
 		} else if isReservedRune(ch) && runeEscaped {
