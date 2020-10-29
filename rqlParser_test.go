@@ -76,9 +76,29 @@ var _ = Describe("GoRqlParser", func() {
 			Expect(res.Desc).To(BeFalse())
 		})
 	})
-	It("Can parse special symbols", func() {
-		sheldingString := "H\\&M\\,\\(\\)\\\\ \\a"
-		valueStirng := "H&M,()\\ а"
+	It("Can parse special symbol inside string", func() {
+		sheldingString := "H\\&M"
+		valueStirng := "H&M"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s*)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
+	})
+	It("Can parse special symbol in the end of the string", func() {
+		sheldingString := "H\\&"
+		valueStirng := "H&"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s", valueStirng)))
+	})
+	It("Can escape backslash", func() {
+		sheldingString := "9\\\\4"
+		valueStirng := "9\\4"
 		parser := rqlParser.NewParser()
 		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s*)", sheldingString))
 
