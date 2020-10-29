@@ -37,18 +37,11 @@ func (st *SqlTranslator) where(n *RqlNode) (string, error) {
 }
 
 func (st *SqlTranslator) Limit() (sql string) {
-	limit := st.rootNode.Limit()
-	if limit != "" && strings.ToUpper(limit) != "INFINITY" {
-		sql = " LIMIT " + limit
-	}
-	return
+	return fmt.Sprintf(" LIMIT %d", st.rootNode.Limit())
 }
 
 func (st *SqlTranslator) Offset() (sql string) {
-	if st.rootNode.Offset() != "" {
-		sql = " OFFSET " + st.rootNode.Offset()
-	}
-	return
+	return fmt.Sprintf(" OFFSET %d", st.rootNode.Offset())
 }
 
 func (st *SqlTranslator) Sort() (sql string) {
@@ -73,10 +66,7 @@ func (st *SqlTranslator) Sql() (string, error) {
 	if err != nil {
 		return sql, err
 	}
-
-	sql = sql + st.Sort() + st.Limit() + st.Offset()
-
-	return sql, nil
+	return sql + st.Sort() + st.Limit() + st.Offset(), nil
 }
 
 func NewSqlTranslator(r *RqlRootNode) (st *SqlTranslator) {
