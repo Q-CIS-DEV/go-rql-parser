@@ -106,4 +106,16 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
 	})
+
+	It("Limit max value", func() {
+		parser := rqlParser.NewParser()
+		_, err := parser.Parse("limit(0,2147483647)")
+
+		Expect(err).To(BeNil())
+
+		_, err = parser.Parse("limit(0,9007199254740991)")
+
+		Expect(err).NotTo(BeNil())
+		Expect(err.Error()).To(BeEquivalentTo("limit param must be a number less than 2147483647"))
+	})
 })

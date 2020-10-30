@@ -1,6 +1,7 @@
 package rqlParser
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -30,43 +31,41 @@ type Sort struct {
 
 type RqlRootNode struct {
 	Node   *RqlNode
-	limit  string
-	offset string
+	limit  int
+	offset int
 	sorts  []Sort
 }
 
-func (r *RqlRootNode) Limit() string {
+func (r *RqlRootNode) Limit() int {
 	return r.limit
 }
 
-func (r *RqlRootNode) Offset() string {
+func (r *RqlRootNode) Offset() int {
 	return r.offset
-}
-
-func (r *RqlRootNode) OffsetInt() int {
-	i, err := strconv.Atoi(r.offset)
-	if err != nil {
-		return 0
-	}
-	return i
 }
 
 func (r *RqlRootNode) Sort() []Sort {
 	return r.sorts
 }
 
-func parseLimit(n *RqlNode, root *RqlRootNode) (isLimitOp bool) {
-	if n == nil {
-		return false
-	}
-	if strings.ToUpper(n.Op) == "LIMIT" {
-		root.offset = n.Args[0].(string)
-		if len(n.Args) > 1 {
-			root.limit = n.Args[1].(string)
+func parseLimit(n *RqlNode, root *RqlRootNode) (bool, error) {
+	var err error
+	if n != nil &&  strings.ToUpper(n.Op) == "LIMIT" {
+
+		root.offset, err = strconv.Atoi(n.Args[0].(string))
+		if err != nil || root.offset > 2147483647 {
+			return false, errors.New("offset param must be a number less than 2147483647")
 		}
-		isLimitOp = true
+
+		if len(n.Args) > 1 {
+			root.limit, err = strconv.Atoi(n.Args[1].(string))
+			if err != nil || root.limit > 2147483647 {
+				return false, errors.New("limit param must be a number less than 2147483647")
+			}
+		}
+		return true, err
 	}
-	return
+	return false, err
 }
 func parseSort(n *RqlNode, root *RqlRootNode) (isSortOp bool) {
 	if n == nil {
@@ -92,7 +91,11 @@ func parseSort(n *RqlNode, root *RqlRootNode) (isSortOp bool) {
 }
 
 func (r *RqlRootNode) ParseSpecialOps() (err error) {
-	if parseLimit(r.Node, r) || parseSort(r.Node, r) {
+	isLimit, err := parseLimit(r.Node, r)
+	if err != nil {
+		return err
+	}
+	if  isLimit || parseSort(r.Node, r) {
 		r.Node = nil
 	} else if r.Node != nil {
 		if strings.ToUpper(r.Node.Op) == "AND" {
@@ -101,7 +104,11 @@ func (r *RqlRootNode) ParseSpecialOps() (err error) {
 			for i, c := range r.Node.Args {
 				switch n := c.(type) {
 				case *RqlNode:
-					if parseLimit(n, r) {
+					isLimit, err = parseLimit(n, r)
+					if err != nil {
+						return err
+					}
+					if isLimit {
 						limitIndex = i
 					} else if parseSort(n, r) {
 						sortIndex = i
@@ -166,9 +173,9 @@ func (parser *Parser) Parse(rql string) (root *RqlRootNode, err error) {
 		return nil, err
 	}
 
-	root.ParseSpecialOps()
+	err = root.ParseSpecialOps()
 
-	return
+	return root, err
 }
 
 func getTokenOp(t Token) string {
