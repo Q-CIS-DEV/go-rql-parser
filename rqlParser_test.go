@@ -106,6 +106,98 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
 	})
+	// doesn't pass
+	It("Can parse \\&", func() {
+		sheldingString := "\\&"
+		valueStirng := "&"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,%s)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("%s", valueStirng)))
+	})
+
+	// doesn't pass
+	It("Can parse \\&*", func() {
+		sheldingString := "\\&"
+		valueStirng := "&"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,%s*)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("%s*", valueStirng)))
+	})
+
+	// ok
+	It("Can parse *\\&", func() {
+		sheldingString := "\\&"
+		valueStirng := "&"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s", valueStirng)))
+	})
+	// ok
+	It("Can parse *\\&*", func() {
+		sheldingString := "\\&"
+		valueStirng := "&"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s*)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
+	})
+	// doesn't pass
+	It("Can parse \\a", func() {
+		sheldingString := "\\a"
+		valueStirng := "a"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,%s)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("%s", valueStirng)))
+	})
+	// doesn't pass
+	It("Can parse \\a*", func() {
+		sheldingString := "\\a"
+		valueStirng := "a"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,%s*)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("%s*", valueStirng)))
+	})
+
+	// doesn't pass
+	It("Can parse *\\a", func() {
+		sheldingString := "\\a"
+		valueStirng := "a"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s", valueStirng)))
+	})
+
+	// doesn't pass
+	It("Can parse *\\a*", func() {
+		sheldingString := "\\a"
+		valueStirng := "a"
+		parser := rqlParser.NewParser()
+		rqlNode, err := parser.Parse(fmt.Sprintf("like(name,*%s*)", sheldingString))
+
+		Expect(err).To(BeNil())
+		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
+		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
+	})
 
 	It("Limit max value", func() {
 		parser := rqlParser.NewParser()
