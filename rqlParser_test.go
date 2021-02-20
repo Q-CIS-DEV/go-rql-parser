@@ -76,6 +76,7 @@ var _ = Describe("GoRqlParser", func() {
 			Expect(res.Desc).To(BeFalse())
 		})
 	})
+
 	It("Can parse special symbol inside string", func() {
 		sheldingString := "H\\&M"
 		valueStirng := "H&M"
@@ -86,6 +87,7 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
 	})
+
 	It("Can parse special symbol in the end of the string", func() {
 		sheldingString := "H\\&"
 		valueStirng := "H&"
@@ -96,6 +98,7 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s", valueStirng)))
 	})
+
 	It("Can escape backslash", func() {
 		sheldingString := "9\\\\4"
 		valueStirng := "9\\4"
@@ -106,7 +109,7 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
 	})
-	// doesn't pass
+
 	It("Can parse \\&", func() {
 		sheldingString := "\\&"
 		valueStirng := "&"
@@ -118,7 +121,6 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("%s", valueStirng)))
 	})
 
-	// doesn't pass
 	It("Can parse \\&*", func() {
 		sheldingString := "\\&"
 		valueStirng := "&"
@@ -130,7 +132,6 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("%s*", valueStirng)))
 	})
 
-	// ok
 	It("Can parse *\\&", func() {
 		sheldingString := "\\&"
 		valueStirng := "&"
@@ -141,7 +142,7 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s", valueStirng)))
 	})
-	// ok
+
 	It("Can parse *\\&*", func() {
 		sheldingString := "\\&"
 		valueStirng := "&"
@@ -152,7 +153,7 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s*", valueStirng)))
 	})
-	// doesn't pass
+
 	It("Can parse \\a", func() {
 		sheldingString := "\\a"
 		valueStirng := "a"
@@ -163,7 +164,7 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Op).To(BeEquivalentTo("like"))
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("%s", valueStirng)))
 	})
-	// doesn't pass
+
 	It("Can parse \\a*", func() {
 		sheldingString := "\\a"
 		valueStirng := "a"
@@ -175,7 +176,6 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("%s*", valueStirng)))
 	})
 
-	// doesn't pass
 	It("Can parse *\\a", func() {
 		sheldingString := "\\a"
 		valueStirng := "a"
@@ -187,7 +187,6 @@ var _ = Describe("GoRqlParser", func() {
 		Expect(rqlNode.Node.Args[1].(string)).To(BeEquivalentTo(fmt.Sprintf("*%s", valueStirng)))
 	})
 
-	// doesn't pass
 	It("Can parse *\\a*", func() {
 		sheldingString := "\\a"
 		valueStirng := "a"
