@@ -13,21 +13,21 @@ const (
 	EOF
 
 	// Literals
-	IDENT  // fields, function names
+	IDENT // fields, function names
 
 	// Reserved characters
-	SPACE                //
-	AMPERSAND            // &
-	OPENING_PARENTHESIS  // (
-	CLOSING_PARENTHESIS  // )
-	COMMA                // ,
-	EQUAL_SIGN           // =
-	SLASH                // /
-	SEMI_COLON           // ;
-	QUESTION_MARK        // ?
-	AT_SYMBOL            // @
-	PIPE                 // |
-	BACKSLASH            // \
+	SPACE               //
+	AMPERSAND           // &
+	OPENING_PARENTHESIS // (
+	CLOSING_PARENTHESIS // )
+	COMMA               // ,
+	EQUAL_SIGN          // =
+	SLASH               // /
+	SEMI_COLON          // ;
+	QUESTION_MARK       // ?
+	AT_SYMBOL           // @
+	PIPE                // |
+	BACKSLASH           // \
 
 	// Keywords
 	AND
@@ -85,7 +85,7 @@ func (s *Scanner) Scan(r io.Reader) (out []TokenString, err error) {
 func (s *Scanner) ScanToken() (tok Token, lit string) {
 	ch := s.read()
 
-	if isReservedRune(ch) {
+	if isReservedRune(ch) && !isEscapeRune(ch) {
 		s.unread()
 		return s.scanReservedRune()
 	} else if ch == eof {
@@ -185,28 +185,34 @@ func isDigit(ch rune) bool { return ch >= '0' && ch <= '9' }
 func (s *Scanner) scanIdent() (tok Token, lit string) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
-	buf.WriteRune(s.read())
-
 	runeEscaped := false
+
+	ch := s.read()
+	if isEscapeRune(ch) {
+		runeEscaped = true
+	} else {
+		buf.WriteRune(ch)
+	}
 
 	// Read every subsequent ident character into the buffer.
 	// Non-ident characters and EOF will cause the loop to exit.
 	for {
 		if ch := s.read(); ch == eof {
 			break
-			
+
 		} else if isEscapeRune(ch) && !runeEscaped {
 			runeEscaped = true
-			
+
 		} else if isReservedRune(ch) && runeEscaped {
 			buf.WriteRune(ch)
 			runeEscaped = false
-			
+
 		} else if isReservedRune(ch) && !runeEscaped {
 			s.unread()
 			break
 		} else {
 			_, _ = buf.WriteRune(ch)
+			runeEscaped = false
 		}
 	}
 
